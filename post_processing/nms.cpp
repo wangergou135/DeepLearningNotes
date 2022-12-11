@@ -39,48 +39,100 @@ float iou(box& a, box& b)
 
     return intersection / (AREA(a) + AREA(b) - intersection); 
 }
-
-int nms(vector<box>& boxes, float threshold)
+void print_ious(vector<box>& boxes)
 {
-    int cur_index = 0;
-    int invalid_index = boxes.size() - 1;
+    for (int i = 0; i < boxes.size(); i++)
+    {
+
+        
+        for (int j = 0; j < boxes.size(); j++)
+        {
+            cout << iou(boxes[i], boxes[j]) << ",\t" ;
+        }
+        cout << endl;
+    }
+}
+// int nms(vector<box>& boxes, float threshold)
+// {
+//     int cur_index = 0;
+//     int invalid_index = boxes.size() - 1;
+//     int i = 0;
+    
+//     for (i = 1; i < boxes.size(); i++) {
+//         if (boxes[i].score > boxes[0].score) {
+//             swap(boxes[0], boxes[i]);
+//         }
+//     }
+
+//     i = 1;
+//     while (i < boxes.size()) {
+//         cout << i << ", " << cur_index << "," << invalid_index << endl;
+//         if (iou(boxes[cur_index], boxes[i]) >= threshold) {
+//             swap(boxes[i], boxes[invalid_index]);
+//             invalid_index--;
+//         } else {
+//             i++;
+//         }
+//         if (invalid_index == i) {
+//             i = ++cur_index + 1;
+//         }
+//     }
+
+//     return invalid_index;
+// }
+
+
+// every time do nms for the box with max score . 
+// this can easily change to the loop style to accerate a bit
+void nms_recursive(vector<box>& boxes, int& begin_index, int& end_index, float threshold)
+{
+    if (begin_index >= end_index ) return; 
+    // cout << "nms:" << begin_index << ", " << end_index<< endl; 
+    // print_boxes(boxes);
+
     int i = 0;
     
-    for (i = 1; i < boxes.size(); i++) {
-        if (boxes[i].score > boxes[0].score) {
-            swap(boxes[0], boxes[i]);
+    for (i = begin_index+1; i <= end_index; i++) {
+        if (boxes[i].score > boxes[begin_index].score) {
+            swap(boxes[begin_index], boxes[i]);
         }
     }
 
     i = 1;
-    while (i < boxes.size()) {
-        cout << i << ", " << cur_index << "," << invalid_index << endl;
-        if (iou(boxes[cur_index], boxes[i]) >= threshold) {
-            swap(boxes[i], boxes[invalid_index]);
-            invalid_index--;
+    while (begin_index+i <= end_index) {
+         
+        if (iou(boxes[begin_index], boxes[begin_index+i]) >= threshold) {
+            swap(boxes[begin_index+i], boxes[end_index--]);
         } else {
             i++;
         }
-        if (invalid_index == i) {
-            i = ++cur_index + 1;
-        }
     }
+    print_boxes(boxes);
 
-    return invalid_index;
+    nms_recursive(boxes, ++begin_index , end_index, threshold);
 }
+
+
 
 int main()
 {
     vector<box> boxes= {    
         {100,100,210,210,0.72},
-        {250,250,420,420,0.8 },
+        {230,250,450,450,0.8 },
         {220,220,320,330,0.92},
-        {100,100,210,210,0.73},
+        {90,80,210,210,0.73},
         {230,240,325,330,0.81},
         {220,230,315,340,0.9 } 
                         };
     
-    cout << "result boxes:" << nms(boxes, 0.7) << endl;
+    print_boxes(boxes);
+    print_ious(boxes);
+
+
+    int begin_index = 0;
+    int end_index = boxes.size() - 1; 
+    nms_recursive(boxes, begin_index, end_index, 0.5);
+    cout << "result boxes size :" <<  begin_index<< "," << end_index << endl;
 
     print_boxes(boxes);
     
